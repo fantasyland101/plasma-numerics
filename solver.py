@@ -43,11 +43,11 @@ def iterrarion_loop(r, t, W_init, D, S, V, bc_first, bc_last):
     V = make_time_dependent(V,lt)
 
     if D.shape != (lt, lr):
-        raise ValueError("'D' must have shape lt*lr")
+        raise ValueError("'D' must have shape lt*lr. Current shape is: " + str(D.shape))
     if S.shape != (lt, lr):
         raise ValueError("'S' must have shape lt*lr. Current shape is: " + str(S.shape))
     if V.shape != (lt, lr):
-        raise ValueError("'V' must have shape lt*lr")
+        raise ValueError("'V' must have shape lt*lr. Current shape is: " + str(V.shape))
 
     print(r.size)
     print(W_init.size)
