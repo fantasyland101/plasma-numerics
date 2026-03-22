@@ -45,7 +45,7 @@ def iterrarion_loop(r, t, W_init, D, S, V, bc_first, bc_last):
     if D.shape != (lt, lr):
         raise ValueError("'D' must have shape lt*lr")
     if S.shape != (lt, lr):
-        raise ValueError("'S' must have shape lt*lr")
+        raise ValueError("'S' must have shape lt*lr. Current shape is: " + str(S.shape))
     if V.shape != (lt, lr):
         raise ValueError("'V' must have shape lt*lr")
 
