@@ -10,6 +10,8 @@ with h5py.File(file_path, 'r') as f:
     E_para = f['eqsys/E_field'][:]
     E_ceff = f['other/fluid/Eceff'][:]
     j_re = f['eqsys/j_re'][:]
+    r = f['grid/r'][:]
+    W_i = f['eqsys/W_i'][:]
 
 N = 22
 tt = 1919
@@ -17,23 +19,19 @@ tt = 1919
 # Calculate s from input data.
 # E_para and j_re have shape (1919, 22) while E_ceff has shape (1918, 22)
 S = (E_para[0:-1] - E_ceff) * j_re[0:-1]
-D = np.array([3] * N)
-V = np.array([3] * N)
-print(S.shape)
+D = np.array([0.3] * N)
+V = np.array([1] * N)
 
-# Space grid
-r = np.linspace(0, 3, N)
 
 # Time grid
-t = np.linspace(0, 3, tt)
+t = np.linspace(0, 0.2, tt)
 
 
 # Initial value of W at t_min
-W_init = np.array([1] * N)
+W_init = W_i[0, 0, :]
 bc_first = 1
 bc_last = 1
-W_init[0] = bc_first
-W_init[-1] = bc_last
+
 
 
 
