@@ -1,10 +1,10 @@
 import numpy as np
 
-def make_time_dependent(coefficient, nt):
+def make_time_dependent(coefficient, lt):
     coefficient = np.array(coefficient,dtype=float)
     if coefficient.ndim == 1:
-        out = np.zeros((nt,coefficient.size))
-        for i in range(nt):
+        out = np.zeros((lt,coefficient.size))
+        for i in range(lt):
             out[i, :] = coefficient
         return out
     if coefficient.ndim == 2:
