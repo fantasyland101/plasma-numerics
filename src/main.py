@@ -19,8 +19,8 @@ tt = 1919
 # Calculate s from input data.
 # E_para and j_re have shape (1919, 22) while E_ceff has shape (1918, 22)
 S = (E_para[0:-1] - E_ceff) * j_re[0:-1]
-D = np.array([0.3] * N)
-V = np.array([1] * N)
+D = np.array([0.3] * (N))
+V = np.array([1] * (N))
 
 
 # Time grid

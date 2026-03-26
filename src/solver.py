@@ -54,13 +54,12 @@ def iterrarion_loop(r, t, W_init, D, S, V, bc_first, bc_last):
     # is d_r really the distance between faces? I don't think so, it should be the distance between centers.
     d_r = np.diff(r)
     d_t = np.diff(t)
-    """
+
     # dr_volume is the width of a cell, while d_r is the width between centers
     dr_volume = np.zeros(lr)
     dr_volume[1:-1] = 0.5 * (d_r[:-1] + d_r[1:])
     dr_volume[0] = 0.5 * d_r[0]
     dr_volume[-1] = 0.5 * d_r[-1]
-    """
 
     # Initilise the kinetic energy matrix
     W_size = len(t), len(r)
@@ -70,9 +69,7 @@ def iterrarion_loop(r, t, W_init, D, S, V, bc_first, bc_last):
 
     # FIXME d_r[0] is lazy solution
     # FIXME use neuman conditions
-    # Changed the range, for t that has length lt, there are lt - 1 faces
-
-    for i in range(lt - 1):
+    for i in range(lt):
 
         """
         Need to change this since we are supposed to take the harmonic average over V*D not just D
@@ -95,8 +92,7 @@ def iterrarion_loop(r, t, W_init, D, S, V, bc_first, bc_last):
         P[-1,-1] = 1
         RHS[0] = bc_first
         RHS[-1] = bc_last
-        rf_distance = 0.5 * (r[:-1] + r[1:])
-
+        
         # Now technically, I shouldn't have **2 for a finite volume scheme.
         # But since everything is assumed to be uniform, it is fine. If we use DREAM inputs, then this has to be changed
         # FIXME maybe fixed?
@@ -105,11 +101,11 @@ def iterrarion_loop(r, t, W_init, D, S, V, bc_first, bc_last):
             a_right = VD_average[j]/(d_r[j])
 
             P[j,j-1] = -a_left
-            P[j,j]= (V_next[j] * rf_distance[j-1])/d_t[i] + a_left + a_right
+            P[j,j]= (V_next[j] * dr_volume[j])/d_t[i] + a_left + a_right
             P[j,j+1] = -a_right
 
             # Calculate the rhs based on current cell
-            RHS[j] = V_next[j] * rf_distance[j-1] * (S_next[j] + W[i,j] / d_t[i])
+            RHS[j] = V_next[j] * dr_volume[j] * (S_next[j] + W[i,j] / d_t[i])
 
 
         # Do some reasonable checks
