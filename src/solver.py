@@ -58,6 +58,8 @@ def iterrarion_loop(r, t, W_init, D, S, V, bc_first, bc_last):
     W = np.full(W_size, np.nan)
     W[0, :] = W_init
 
+    P = np.zeros((lr, lr))
+    RHS = np.zeros(lr)
     # FIXME d_r[0] is lazy solution
     # FIXME use neuman conditions
     for i in range(lt - 1):
@@ -76,8 +78,6 @@ def iterrarion_loop(r, t, W_init, D, S, V, bc_first, bc_last):
         VD = V_next * D_next
         VD_average = 2 / (1 / VD[0:-1] + 1 / VD[1:])
 
-        P = np.zeros((lr, lr))
-        RHS = np.zeros(lr)
         P[0, 0] = 1
         P[-1, -1] = 1
         RHS[0] = bc_first
