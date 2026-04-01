@@ -7,24 +7,30 @@ from solver import iterrarion_loop
 # W(r, t= infinity) = -(S*r^2) / (2D) + (S*r)/(2D)
 
 N = 100
+tt = 1920
 # Space grid
 r = np.linspace(0, 1, num=N)
 # Time grid
-t = np.linspace(0, 100, num=100)
+t = np.linspace(0, 100, num=tt)
 
 # Initial value of W at t_min
 W_init = np.array([0] * N)
 # equation terms
-D = np.array(
-    [1] * (N)
+D_0 = np.array(
+    [1] * N
 )  # shall be zero but devision by 0 is a problem. Luckely 0.001 is kinda sorta 0.
-S = np.array([3] * N)
-V = np.array([1] * N)
+S_0 = np.array([3] * N)
+V_0 = np.array([1] * N)
+
+D = np.repeat(D_0[np.newaxis, :], tt, axis=0)
+S = np.repeat(S_0[np.newaxis, :], tt, axis=0)
+V = np.repeat(V_0[np.newaxis, :], tt, axis=0)
 
 bc_first = 0
 bc_last = 0
 W_init[0] = bc_first
 W_init[-1] = bc_last
+
 
 def main():
     W = iterrarion_loop(r, t, W_init, D, S, V, bc_first, bc_last)
