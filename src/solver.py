@@ -75,27 +75,34 @@ def iterrarion_loop(r, t, W_init, D, S, V, bc_first, bc_last):
         S_next = S[i + 1, :]
         V_next = V[i + 1, :]
         # VD is taken at a face now
-        VD = V_next * D_next
-        VD_average = 2 / (1 / VD[0:-1] + 1 / VD[1:])
+        VD_average = 2 / (1 / (V_next * D_next)[0:-1] + 1 / (V_next * D_next)[1:])
 
+        # Calculate the time step matrix P
+        # P[j,j] = A_center[j] for j = [1, max -1]
+        # P[max,max] = 1 (boundary cond)
+        # P[0,0] = 1 (boundary cond)
+        # P[j, j+1] = -A_right[j] for j = [1, max]
+        # P[0,1] =0 (boundary cond)
+        # P[j,j-1] = -A_left[j] for j =[0, max -1]
+        # P[max, max-1] =0 (boundary cond)
+        # A_center = ..
+        # A_left = ..
+        # A_right = ..
+        A_left = VD_average[:-1] / (d_r[:-1] * dr_volume[1:-1])
+        A_right = VD_average[1:] / (d_r[1:] * dr_volume[1:-1])
+        A_center = V_next[1:-1] / d_t[i] + A_left + A_right
+        P = (
+            np.diag(np.concatenate(([0], A_center, [0])), k=0)
+            + np.diag(np.concatenate(([0], -A_right)), k=1)
+            + np.diag(np.concatenate((-A_left, [0])), k=-1)
+        )
+        # Set boundary conditions.
         P[0, 0] = 1
         P[-1, -1] = 1
+        # Calculate the RHS of the equation
+        RHS = V_next * S_next + W[i, :] / d_t[i]
         RHS[0] = bc_first
         RHS[-1] = bc_last
-
-        # Now technically, I shouldn't have **2 for a finite volume scheme.
-        # But since everything is assumed to be uniform, it is fine. If we use DREAM inputs, then this has to be changed
-        # FIXME maybe fixed?
-        for j in range(1, lr - 1):
-            a_left = VD_average[j - 1] / (d_r[j - 1] * dr_volume[j])
-            a_right = VD_average[j] / (d_r[j] * dr_volume[j])
-
-            P[j, j - 1] = -a_left
-            P[j, j] = (V_next[j]) / d_t[i] + a_left + a_right
-            P[j, j + 1] = -a_right
-
-            # Calculate the rhs based on current cell
-            RHS[j] = V_next[j] * (S_next[j] + W[i, j] / d_t[i])
 
         # Do some reasonable checks
         if np.isnan(P).any():
