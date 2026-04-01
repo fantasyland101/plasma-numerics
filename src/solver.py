@@ -1,14 +1,5 @@
 import numpy as np
 
-def make_time_dependent(coefficient, lt):
-    coefficient = np.array(coefficient,dtype=float)
-    if coefficient.ndim == 1:
-        out = np.zeros((lt,coefficient.size))
-        for i in range(lt):
-            out[i, :] = coefficient
-        return out
-    if coefficient.ndim == 2:
-        return coefficient
 
 def iterrarion_loop(r, t, W_init, D, S, V, bc_first, bc_last):
     """Using finite volume method to solve a pde of the form
@@ -37,17 +28,18 @@ def iterrarion_loop(r, t, W_init, D, S, V, bc_first, bc_last):
     if lr != W_init.size:
         raise ValueError("'r' and '_W_init' have different shape")
 
-    D = make_time_dependent(D,lt)
-    S = make_time_dependent(S,lt)
-    # I put V in here as well, but it's not really a coefficient. So while it works, this might be conceptually wrong?
-    V = make_time_dependent(V,lt)
-
     if D.shape != (lt, lr):
-        raise ValueError("'D' must have shape lt*lr. Current shape is: " + str(D.shape))
+        raise ValueError(
+            f"'D' must have shape lt*lr=({(lt, lr)}). Current shape is: " + str(D.shape)
+        )
     if S.shape != (lt, lr):
-        raise ValueError("'S' must have shape lt*lr. Current shape is: " + str(S.shape))
+        raise ValueError(
+            f"'S' must have shape lt*lr=({(lt, lr)}). Current shape is: " + str(S.shape)
+        )
     if V.shape != (lt, lr):
-        raise ValueError("'V' must have shape lt*lr. Current shape is: " + str(V.shape))
+        raise ValueError(
+            f"'V' must have shape lt*lr=({(lt, lr)}). Current shape is: " + str(V.shape)
+        )
 
     # callculate the step lengths
     # FIXME "d_r is distances betwean flux surfaces and should be given as input params to this function"
@@ -66,11 +58,9 @@ def iterrarion_loop(r, t, W_init, D, S, V, bc_first, bc_last):
     W = np.full(W_size, np.nan)
     W[0, :] = W_init
 
-
     # FIXME d_r[0] is lazy solution
     # FIXME use neuman conditions
-    for i in range(lt):
-
+    for i in range(lt - 1):
         """
         Need to change this since we are supposed to take the harmonic average over V*D not just D
         D_average = 2 / (1 / D[0:-1] + 1 / D[1:])
@@ -79,34 +69,33 @@ def iterrarion_loop(r, t, W_init, D, S, V, bc_first, bc_last):
         # this is correct, we take the next value in time.
         # Is diffusivity given at faces or taken at faces? Do we know the diffusivity of a cell, or through the cell to its neighbours?
         # FIXME
-        D_next = D[i + 1,:]
-        S_next = S[i + 1,:]
-        V_next = V[i + 1,:]
+        D_next = D[i + 1, :]
+        S_next = S[i + 1, :]
+        V_next = V[i + 1, :]
         # VD is taken at a face now
         VD = V_next * D_next
         VD_average = 2 / (1 / VD[0:-1] + 1 / VD[1:])
 
-        P = np.zeros((lr,lr))
+        P = np.zeros((lr, lr))
         RHS = np.zeros(lr)
-        P[0,0] = 1
-        P[-1,-1] = 1
+        P[0, 0] = 1
+        P[-1, -1] = 1
         RHS[0] = bc_first
         RHS[-1] = bc_last
-        
+
         # Now technically, I shouldn't have **2 for a finite volume scheme.
         # But since everything is assumed to be uniform, it is fine. If we use DREAM inputs, then this has to be changed
         # FIXME maybe fixed?
-        for j in range(1, lr-1):
-            a_left = VD_average[j-1]/(d_r[j-1])
-            a_right = VD_average[j]/(d_r[j])
+        for j in range(1, lr - 1):
+            a_left = VD_average[j - 1] / (d_r[j - 1])
+            a_right = VD_average[j] / (d_r[j])
 
-            P[j,j-1] = -a_left
-            P[j,j]= (V_next[j] * dr_volume[j])/d_t[i] + a_left + a_right
-            P[j,j+1] = -a_right
+            P[j, j - 1] = -a_left
+            P[j, j] = (V_next[j] * dr_volume[j]) / d_t[i] + a_left + a_right
+            P[j, j + 1] = -a_right
 
             # Calculate the rhs based on current cell
-            RHS[j] = V_next[j] * dr_volume[j] * (S_next[j] + W[i,j] / d_t[i])
-
+            RHS[j] = V_next[j] * dr_volume[j] * (S_next[j] + W[i, j] / d_t[i])
 
         # Do some reasonable checks
         if np.isnan(P).any():
