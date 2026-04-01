@@ -2,7 +2,7 @@
 **/__pycache__/
 *.py[codz]
 *$py.class
-
+*dream_outputs.h5
 # C extensions
 *.so
 

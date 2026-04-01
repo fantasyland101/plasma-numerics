@@ -87,15 +87,15 @@ def iterrarion_loop(r, t, W_init, D, S, V, bc_first, bc_last):
         # But since everything is assumed to be uniform, it is fine. If we use DREAM inputs, then this has to be changed
         # FIXME maybe fixed?
         for j in range(1, lr - 1):
-            a_left = VD_average[j - 1] / (d_r[j - 1])
-            a_right = VD_average[j] / (d_r[j])
+            a_left = VD_average[j - 1] / (d_r[j - 1] * dr_volume[j])
+            a_right = VD_average[j] / (d_r[j] * dr_volume[j])
 
             P[j, j - 1] = -a_left
-            P[j, j] = (V_next[j] * dr_volume[j]) / d_t[i] + a_left + a_right
+            P[j, j] = (V_next[j]) / d_t[i] + a_left + a_right
             P[j, j + 1] = -a_right
 
             # Calculate the rhs based on current cell
-            RHS[j] = V_next[j] * dr_volume[j] * (S_next[j] + W[i, j] / d_t[i])
+            RHS[j] = V_next[j] * (S_next[j] + W[i, j] / d_t[i])
 
         # Do some reasonable checks
         if np.isnan(P).any():
@@ -103,7 +103,6 @@ def iterrarion_loop(r, t, W_init, D, S, V, bc_first, bc_last):
 
         W[i + 1, :] = np.linalg.solve(P, RHS)
 
-        # Do other reasonable checks
         if np.isnan(W[i + 1, :]).any():
-            print("error here in W")  # RaiseError!!
+            raise ValueError("The resulting matrix contains NAN, should not happen!")
     return W
