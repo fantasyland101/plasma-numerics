@@ -65,19 +65,15 @@ def iterrarion_loop(r, t, W_init, D, S, V, bc_first, bc_last):
     # FIXME d_r[0] is lazy solution
     # FIXME use neuman conditions
     for i in range(lt - 1):
-        """
-        Need to change this since we are supposed to take the harmonic average over V*D not just D
-        D_average = 2 / (1 / D[0:-1] + 1 / D[1:])
-        """
         # take next values, for euler backwards
         # this is correct, we take the next value in time.
         # Is diffusivity given at faces or taken at faces? Do we know the diffusivity of a cell, or through the cell to its neighbours?
         # FIXME
-        D_next = D[i + 1, :]
-        S_next = S[i + 1, :]
-        V_next = V[i + 1, :]
+        D_now = D[i, :]
+        S_now = S[i, :]
+        V_now = V[i, :]
         # VD is taken at a face now
-        VD_average = 2 / (1 / (V_next * D_next)[0:-1] + 1 / (V_next * D_next)[1:])
+        VD_average = 2 / (1 / (V_now * D_now)[0:-1] + 1 / (V_now * D_now)[1:])
 
         # Calculate the time step matrix P
         # P[j,j] = A_center[j] for j = [1, max -1]
@@ -90,21 +86,21 @@ def iterrarion_loop(r, t, W_init, D, S, V, bc_first, bc_last):
         # A_center = ..
         # A_left = ..
         # A_right = ..
-        A_left = VD_average[:-1] / (d_r[:-1] * dr_volume[1:-1])
-        A_right = VD_average[1:] / (d_r[1:] * dr_volume[1:-1])
-        A_center = V_next[1:-1] / d_t[i] + A_left + A_right
+        T = -d_t[i] * VD_average[1:] / (d_r[1:] * dr_volume[1:-1] * V_now[1:-1])
+        B = -d_t[i] * VD_average[:-1] / (d_r[:-1] * dr_volume[1:-1] * V_now[1:-1])
+        C = 1 - T - B
         P = (
-            np.diag(np.concatenate(([0], A_center, [0])), k=0)
-            + np.diag(np.concatenate(([0], -A_right)), k=1)
-            + np.diag(np.concatenate((-A_left, [0])), k=-1)
+            np.diag(np.concatenate(([0], C, [0])), k=0)
+            + np.diag(np.concatenate(([0], T)), k=1)
+            + np.diag(np.concatenate((B, [0])), k=-1)
         )
         # Set boundary conditions.
-        P[0, 0] = 1 * d_t[0]
-        P[-1, -1] = 1 * d_t[-1]
-        V_next[0] = 0
-        V_next[-1] = 0
+        P[0, 0] = 1
+        P[-1, -1] = 1
+        S_now[0] = 0
+        S_now[-1] = 0
         # Calculate the RHS of the equation
-        RHS = V_next * S_next + W[i, :] / d_t[i]
+        RHS = d_t[i] * S_now + W[i, :]
 
         # Do some reasonable checks
         if np.isnan(P).any():
