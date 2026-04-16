@@ -24,7 +24,6 @@ def iterrarion_loop(r, t, W_init, D, S, V, bc_first, bc_last):
     """
     lr = r.size
     lt = t.size
-    print(str(lt) + "*" + str(lr))
     if lr != W_init.size:
         raise ValueError("'r' and '_W_init' have different shape")
 
@@ -94,13 +93,23 @@ def iterrarion_loop(r, t, W_init, D, S, V, bc_first, bc_last):
             + np.diag(np.concatenate(([0], T)), k=1)
             + np.diag(np.concatenate((B, [0])), k=-1)
         )
-        # Set boundary conditions.
-        P[0, 0] = 1
-        P[-1, -1] = 1
-        S_now[0] = 0
-        S_now[-1] = 0
+        ## Set boundary conditions. for only dw/dr =0 at boundary
+        K_l = d_r[0]
+        K_r = d_r[-1]
+        P[0, 0] = B[0]
+        P[0, 1] = C[0]
+        P[0, 2] = T[0]
+
+        P[-1, -3] = B[-1]
+        P[-1, -2] = C[-1]
+        P[-1, -1] = T[-1]
+
         # Calculate the RHS of the equation
         RHS = d_t[i] * S_now + W[i, :]
+        RHS[0] = d_t[i] * S_now[1] + K_l + W[i, 0]
+        RHS[-1] = d_t[i] * S_now[-2] + K_r + W[i, -1]
+
+        print(P)
 
         # Do some reasonable checks
         if np.isnan(P).any():
@@ -108,8 +117,6 @@ def iterrarion_loop(r, t, W_init, D, S, V, bc_first, bc_last):
 
         W[i + 1, :] = np.linalg.solve(P, RHS)
 
-        print(W[i + 1, 0])
-        print(W[i + 1, -1])
         if np.isnan(W[i + 1, :]).any():
             raise ValueError("The resulting matrix contains NAN, should not happen!")
     return W
