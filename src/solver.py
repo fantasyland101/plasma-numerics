@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def iterrarion_loop(r, t, d_r, d_t, W_init, D, S, V, n_re, bc_first, bc_last):
+def iterrarion_loop(r, t, W_init, D, S, V, n_re, bc_first, bc_last):
     """Using finite volume method to solve a pde of the form
     (all partial derivatives) V(r)* dW/dt = d/dr(V(r)*D(r) * dW/dr ) + *V(r)*K(r).
     Parameters:
@@ -11,10 +11,10 @@ def iterrarion_loop(r, t, d_r, d_t, W_init, D, S, V, n_re, bc_first, bc_last):
         Time grid; shape: lt
     W_init : np.ndarray
         Initial condition at t = 0, shape: lr
-        First and last values are Neumann boundary conditions
     D, S, V : np.ndarray
         Diffusion, source and flux surface coefficients; shape: lt*lr
-
+    bc_first, bc_last: float
+        These corespond to the Neuman boundary conditions at r=0 and r=max.
     Returns
     -------
     np.ndarray:
@@ -38,10 +38,8 @@ def iterrarion_loop(r, t, d_r, d_t, W_init, D, S, V, n_re, bc_first, bc_last):
         raise ValueError(
             f"'V' must have shape lt*lr=({(lt, lr)}). Current shape is: " + str(V.shape)
         )
-
-    # FIXME "d_r is distances betwean flux surfaces and should be given as input params to this function"
-    # is d_r really the distance between faces? I don't think so, it should be the distance between centers.
-
+    d_r = np.diff(r)
+    d_t = np.diff(t)
     # dr_volume is the width of a cell, while d_r is the width between centers
     dr_volume = np.zeros(lr)
     dr_volume[1:-1] = 0.5 * (d_r[:-1] + d_r[1:])
@@ -71,7 +69,7 @@ def iterrarion_loop(r, t, d_r, d_t, W_init, D, S, V, n_re, bc_first, bc_last):
         A_left = VD_average[:-1] / (d_r[:-1] * dr_volume[1:-1])
         A_right = VD_average[1:] / (d_r[1:] * dr_volume[1:-1])
         A_center = V_next[1:-1] / d_t[i] + A_left + A_right
-        
+
         P = (
             np.diag(np.concatenate(([0], A_center, [0])), k=0)
             + np.diag(np.concatenate(([0], -A_right)), k=1)
@@ -80,8 +78,7 @@ def iterrarion_loop(r, t, d_r, d_t, W_init, D, S, V, n_re, bc_first, bc_last):
 
         RHS = V_next * S_next + (V_next * W[i, :]) / d_t[i]
 
-
-        P[0, :] = 0 
+        P[0, :] = 0
         P[0, 0] = -1
         P[0, 1] = 1
         RHS[0] = bc_first * d_r[0]
@@ -91,13 +88,10 @@ def iterrarion_loop(r, t, d_r, d_t, W_init, D, S, V, n_re, bc_first, bc_last):
         P[-1, -1] = 1
         RHS[-1] = bc_last * d_r[-1]
         W[i + 1, :] = np.linalg.solve(P, RHS)
-        W_total = np.sum(W[i, :] * V[i, :] * dr_volume)
-        N_total = np.sum(n_re[i, :] * V[i, :] * dr_volume)
-        W_avg_timeslice[i] = W_total / N_total
         if np.isnan(W[i + 1, :]).any():
             raise ValueError("The resulting matrix contains NAN, should not happen!")
-    W[-1, :] = W[-2, :]
-    W_total = np.sum(W[-1, :] * V[-1, :] * dr_volume)
-    N_total = np.sum(n_re[-1, :] * V[-1, :] * dr_volume)
-    W_avg_timeslice[-1] = W_total / N_total
+
+    W_total = np.sum(W * V * dr_volume, axis=1)
+    N_total = np.sum(n_re[0:-1] * V * dr_volume, axis=1)
+    W_avg_timeslice = W_total / N_total
     return W, W_avg_timeslice

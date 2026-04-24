@@ -7,7 +7,7 @@ from solver import iterrarion_loop
 N = 30
 tt = 1919
 # Space grid
-r = np.linspace(0, 10, num=N)
+r = np.linspace(0, 5, num=N)
 # Time grid
 t = np.linspace(0, 10, num=tt)
 
@@ -21,8 +21,7 @@ D_0 = np.array(
 S_0 = np.array([0] * N)
 V_0 = np.array([1] * N)
 
-bc_first = 0
-bc_last = 0
+n_re = [[100] * N] * (tt + 1)  # adhock value
 
 D = np.repeat(D_0[np.newaxis, :], tt, axis=0)
 print(D)
@@ -31,7 +30,7 @@ V = np.repeat(V_0[np.newaxis, :], tt, axis=0)
 
 
 def main():
-    W = iterrarion_loop(r, t, W_init, D, S, V, bc_first, bc_last)
+    W, _ = iterrarion_loop(r, t, W_init, D, S, V, n_re, 0, 0)
     renderer(r, t, W)
 
 

@@ -22,11 +22,12 @@ V_0 = np.array([1] * N)
 D = np.repeat(D_0[np.newaxis, :], tt, axis=0)
 V = np.repeat(V_0[np.newaxis, :], tt, axis=0)
 S = np.repeat(S_0[np.newaxis, :], tt, axis=0)
+n_re = [[100] * N] * (tt + 1)  # adhock value
 
 
 def main():
 
-    W = iterrarion_loop(r, t, W_init, D, S, V, 0, 0)
+    W, _ = iterrarion_loop(r, t, W_init, D, S, V, n_re, 0, 0)
     renderer(r, t, W)
 
 
