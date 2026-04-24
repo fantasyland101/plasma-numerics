@@ -15,6 +15,7 @@ with h5py.File(file_path, "r") as f:
 
 N = 22
 tt = 1919
+e = 1.602176634 * (10**-19)
 
 # Calculate s from input data.
 # E_para and j_re have shape (1919, 22) while E_ceff has shape (1918, 22
@@ -48,19 +49,18 @@ def renderer_3d(r, t, W):
 
     plt.gca().set_xlabel("Radius (m)")
     plt.gca().set_ylabel("time (s)")
-    plt.gca().set_zlabel("Energy (J)")
+    plt.gca().set_zlabel("Energy (eV)")
     plt.title("Simulated energy model")
 
-    ax.plot_surface(a, b, W)
+    ax.plot_surface(a, b, W * e)
 
 
 def renderer_2d(t, W_avg_timeslice):
     """Renders the radial avrige energy vektor W_avg_timeslice[i] over time t[i] as a graf."""
     plt.figure()
-    plt.plot(t, W_avg_timeslice)
-    plt.xlabel("Energy (J))")
+    plt.plot(t, W_avg_timeslice * e)
     plt.xlabel("Time (s)")
-    plt.ylabel("Average energy")
+    plt.ylabel("Energy (eV))")
     plt.grid(True)
 
 
