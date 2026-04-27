@@ -1,0 +1,19 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: Simulation of Runaway Electron Energy
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Taaseen
+    family-names: Basheer
+    email: taaseen@kth.se
+    orcid: 'https://orcid.org/0009-0005-9679-5825'
+  - given-names: Hugo Visler
+    family-names: Ameln
+    email: hugova@kth.se
+repository-code: >-
+  https://github.com/fantasyland101/plasma-numerics/tree/main
