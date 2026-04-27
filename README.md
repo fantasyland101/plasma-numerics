@@ -6,7 +6,7 @@ First clone the repo then
 ```
 cd plasma-numerics/src
 ```
-dependencies (will package better later):
+Dependencies:
 ```
 pip install numpy, matplotlib
 ```
