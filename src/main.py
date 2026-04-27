@@ -20,7 +20,7 @@ e = 1.602176634 * (10**-19)
 # Calculate s from input data.
 # E_para and j_re have shape (1919, 22) while E_ceff has shape (1918, 22
 S = (E_para[0:-1] - E_ceff) * j_re[0:-1]
-D = np.full((tt, N), 0.5)
+D = np.full((tt, N), 5)
 V = np.full((tt, N), 1.0)
 
 
@@ -49,18 +49,18 @@ def renderer_3d(r, t, W):
 
     plt.gca().set_xlabel("Radius (m)")
     plt.gca().set_ylabel("time (s)")
-    plt.gca().set_zlabel("Energy (eV)")
+    plt.gca().set_zlabel("Energy (KJ)")
     plt.title("Simulated energy model")
 
-    ax.plot_surface(a, b, W * e)
+    ax.plot_surface(a, b, W * (10**-3))
 
 
 def renderer_2d(t, W_avg_timeslice):
     """Renders the radial avrige energy vektor W_avg_timeslice[i] over time t[i] as a graf."""
     plt.figure()
-    plt.plot(t, W_avg_timeslice * e)
+    plt.plot(t, W_avg_timeslice / (e * 10**6))
     plt.xlabel("Time (s)")
-    plt.ylabel("Energy (eV))")
+    plt.ylabel("Energy per electron (MeV))")
     plt.grid(True)
 
 
